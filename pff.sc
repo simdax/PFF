@@ -1,27 +1,44 @@
 PFF : Pattern{
-	var dur, pattern, tolerance;
-	//	var canEmbed = true;
-	//asStream  { ^Routine({ |inval| this.embedInStream(inval) }) };
-	*new  { |dur, pattern, tolerance = 0.001|
-		^super.newCopyArgs(dur, pattern, tolerance)
+	var dur, pattern;
+
+	*new  { |dur, pattern|
+		^super.newCopyArgs(dur, pattern)
 	}
 	embedInStream  { |inval|
 		var stream = pattern.asStream,
 		durToDrop = dur.value(inval),
 		now = 0, event;
-		while { (now absdif: durToDrop) > tolerance and: {
-			(event = stream.next(inval.copy)).notNil
-		} } {
-			now = now + event.delta;
+		while {
+			now < durToDrop
+		}
+		{
+			event = stream.next(inval);
+			if((now+event.delta) > durToDrop)
+			{
+				var offset = now+event.delta-durToDrop;
+				inval=event.dur_(offset).yield;
+			};
+			now = now + event.delta
 		};
-		stream.embedInStream(inval)
+		stream.embedInStream(inval);
+		^inval
 	}
 }
 
 
 /*
 
-a=Pbind(\degree, Pseries()).midi(5);
-PFF( 15, a ).play
+a=Pbind(\degree, Pseries(), \dur, Pseq([1,2,3],inf));
+PFF(4, a, 1 ).midi.trace.play
+
+
+a=	Ptpar([
+	1, Pmel(4),
+	2, Pmel(4),
+]).midi;
+PFF(5, a).trace.play
+
+Quarks.install("https://github.com/simdax/PFF.git")
 
 */
+
