@@ -6,7 +6,7 @@ PFF : Pattern{
 	}
 	embedInStream  { |inval|
 		var stream = pattern.asStream,
-		durToDrop = dur.value(inval),
+		durToDrop = dur.asStream.value(inval),
 		now = 0, event;
 		while {
 			now < durToDrop
